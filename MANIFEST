@@ -1,7 +1,9 @@
 Changes
 MANIFEST
+MANIFEST.SKIP
 Makefile.PL
 README
-t/1.t
-lib/Pod/HtmlTree.pm
 eg/pod2htmltree
+eg/simple.pl
+lib/Pod/HtmlTree.pm
+t/1.t

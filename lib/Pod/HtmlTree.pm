@@ -13,8 +13,9 @@ use File::Basename;
 use File::Path;
 use Pod::Html;
 use Cwd;
+use File::Temp qw(tempfile);
 
-our $VERSION     = '0.93';
+our $VERSION     = '0.96';
 
 our @ISA = qw(Exporter);
 
@@ -125,7 +126,8 @@ sub pod2htmltree {
 
     $htmldocdir = $HTML_DIR unless defined $htmldocdir;
 
-    my $tmpfile = "/tmp/PodHtmlTree.$$";
+    my ($fh,$tmpfile) = tempfile();
+    close $fh;
 
     my @dirs    = pms(".");
     my @modules = modules(".");
@@ -283,17 +285,23 @@ like to navigate between all those manual pages in your distribution
 and even view their source code? Read on, C<Pod::HtmlTree> is what you need.
 
 It traverses your module's distribution directory (which you've probably 
-created using C<h2xs>, finds all *.pm files recursivly and calls C<pod2html()>
+created using C<h2xs>), finds all *.pm files recursivly and calls C<pod2html()>
 on them, hereby resolving all POD links (LE<lt>...E<gt> style).
 
 =head2 Patching SEE ALSO and WHERE'S THE SOURCE?
 
 It then saves the nicely formatted HTML files under C<docs/html> and 
 updates each's C<SEE ALSO> section to contain links to every other *.pm file
-in you're module's distribution. And it adds a new section C<WHERE'S THE SOURCE?>
-to each HTML file with a link which will have the browser display the Perl source
-of the corresponding *.pm file.
-It also adds a stylesheet to C<docs/html>, which is referenced by every HTML file.
+in you're module's distribution. So, if you want that, please
+make sure your documentation contains a C<SEE ALSO> section.
+
+Also, at the end of the C<SEE ALSO> section, it'll add a link to the
+source code of the current *.pm file, 
+just in case a user wants to browse it because
+there's issues which aren't clear from the documentation.
+
+It also adds a stylesheet to C<docs/html>, which is referenced by every HTML 
+file.
 
 So, in order to obtain HTML documentation for all your distribution's files, 
 just call the script (which comes with the distribution of this module)
@@ -301,12 +309,14 @@ just call the script (which comes with the distribution of this module)
     pod2htmltree httproot
 
 while you're located in the top directory of your module's distribution.
+What's in C<httproot> is explained below.
+
 The script C<pod2htmltree> just calls
 
     use Pod::HtmlTree;
     Pod::HtmlTree::pod2htmltree($ARGV[0]);
 
-internally. 
+internally, if you want to call it from within Perl, that's the way to go.
 
 =head1 FUNCTIONS
 
@@ -314,12 +324,25 @@ internally.
 
 =item pod2htmltree( $httproot );
 
-Recursively finds all C<*.pm> files under the current directory, transforms them
-to HTML and places the result files in a tree starting at C<docs/html> from
-the current directory. 
+Make sure you've C<chdir()>ed to 
+your module's top directory when calling this function.
+
+Recursively finds all C<*.pm> files under the current directory,
+transforms them to HTML and places the result files in a tree starting
+at C<docs/html> from the current directory.
 
 C<$httproot> is the URL (absolute like C<"http://..."> or relative like
-C</mymodule>) to the top directory of your module, as seen from your web browser.
+C</mymodule>) to the top directory of your module, as seen from your web 
+browser.
+
+If you don't like the HTML documents to be created under C<docs/html>,
+you can specify the relative (!) directory in the additional parameter
+C<$htmldocdir>:
+
+    pod2htmltree( $httproot, $htmldocdir );
+
+If not specified, C<$htmldocdir> defaults to C<docs/html>, therefore the
+one-parameter syntax shown above.
 
 =item banner( $text );
 
@@ -390,13 +413,15 @@ Then, if you point your browser to
 
     http://localhost/Spiffy/docs/html/Spiffy.html
 
-you'll see the documentation.
+you'll see the documentation. If you've specified a (probably empty) 
+C<SEE ALSO> section, it will be automatically populated with other modules
+in your distribution and a link to the current module's source code.
 
-=head2 Call it in Makefile.PL
+=head2 Or, call it in Makefile.PL
 
-If you want to give the user of your distribution the opportunity
-to create their own browsable HTML-documentation of your module, just include the
-following in the Makefil.PL of your distribution:
+If you want to give the user of your distribution the opportunity to
+create their own browsable HTML-documentation of your module, just
+include the following in the Makefil.PL of your distribution:
 
     use ExtUtils::MakeMaker;
 

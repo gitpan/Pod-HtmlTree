@@ -1,6 +1,6 @@
-################################################################################
-Pod::HtmlTree 0.93
-################################################################################
+######################################################################
+    Pod::HtmlTree 0.96
+######################################################################
 
 NAME
     Pod::HtmlTree - Create a hierarchy of HTML documents from your module's
@@ -15,21 +15,26 @@ DESCRIPTION
     several *.pm files? You've added nice POD documentation to each of them
     and now you'd like to view it nicely formatted in a web browser? And
     you'd also like to navigate between all those manual pages in your
-    distribution and even view their source code? Read on, `Pod::HtmlTree'
+    distribution and even view their source code? Read on, "Pod::HtmlTree"
     is what you need.
 
     It traverses your module's distribution directory (which you've probably
-    created using `h2xs', finds all *.pm files recursivly and calls
-    `pod2html()' on them, hereby resolving all POD links (L<...> style).
+    created using "h2xs"), finds all *.pm files recursivly and calls
+    "pod2html()" on them, hereby resolving all POD links (L<...> style).
 
   Patching SEE ALSO and WHERE'S THE SOURCE?
+    It then saves the nicely formatted HTML files under "docs/html" and
+    updates each's "SEE ALSO" section to contain links to every other *.pm
+    file in you're module's distribution. So, if you want that, please make
+    sure your documentation contains a "SEE ALSO" section.
 
-    It then saves the nicely formatted HTML files under `docs/html' and
-    updates each's `SEE ALSO' section to contain links to every other *.pm
-    file in you're module's distribution. And it adds a new section `WHERE'S
-    THE SOURCE?' to each HTML file with a link which will have the browser
-    display the Perl source of the corresponding *.pm file. It also adds a
-    stylesheet to `docs/html', which is referenced by every HTML file.
+    Also, at the end of the "SEE ALSO" section, it'll add a link to the
+    source code of the current *.pm file, just in case a user wants to
+    browse it because there's issues which aren't clear from the
+    documentation.
+
+    It also adds a stylesheet to "docs/html", which is referenced by every
+    HTML file.
 
     So, in order to obtain HTML documentation for all your distribution's
     files, just call the script (which comes with the distribution of this
@@ -38,28 +43,43 @@ DESCRIPTION
         pod2htmltree httproot
 
     while you're located in the top directory of your module's distribution.
-    The script `pod2htmltree' just calls
+    What's in "httproot" is explained below.
+
+    The script "pod2htmltree" just calls
 
         use Pod::HtmlTree;
         Pod::HtmlTree::pod2htmltree($ARGV[0]);
 
-    internally.
+    internally, if you want to call it from within Perl, that's the way to
+    go.
 
 FUNCTIONS
     pod2htmltree( $httproot );
-        Recursively finds all `*.pm' files under the current directory,
-        transforms them to HTML and places the result files in a tree
-        starting at `docs/html' from the current directory.
+        Make sure you've "chdir()"ed to your module's top directory when
+        calling this function.
 
-        `$httproot' is the URL (absolute like `"http://..."' or relative
-        like `/mymodule') to the top directory of your module, as seen from
-        your web browser.
+        Recursively finds all "*.pm" files under the current directory,
+        transforms them to HTML and places the result files in a tree
+        starting at "docs/html" from the current directory.
+
+        $httproot is the URL (absolute like "http://..." or relative like
+        "/mymodule") to the top directory of your module, as seen from your
+        web browser.
+
+        If you don't like the HTML documents to be created under
+        "docs/html", you can specify the relative (!) directory in the
+        additional parameter $htmldocdir:
+
+            pod2htmltree( $httproot, $htmldocdir );
+
+        If not specified, $htmldocdir defaults to "docs/html", therefore the
+        one-parameter syntax shown above.
 
     banner( $text );
         Prints the passed text string nicely formatted as a screen warning.
-        E. g., to notify the user after running `pod2htmltree' to `"Make
+        E. g., to notify the user after running "pod2htmltree" to ""Make
         sure http://localhost/perldoc/Pod-HtmlTree points to
-        /u/mschilli/DEV/Pod-HtmlTree"', just pass it to `banner()' and print
+        /u/mschilli/DEV/Pod-HtmlTree"", just pass it to "banner()" and print
         the return value:
 
             **************************************************
@@ -97,8 +117,8 @@ EXAMPLE
         use Pod::HtmlTree;
         Pod::HtmlTree::pod2htmltree("http://localhost/Spiffy");
 
-    from within Perl will `pod2html'-transform the files `Spiffy.pm',
-    `Subspiffy.pm' and `Subsub.pm' to HTML and put the result there:
+    from within Perl will "pod2html"-transform the files "Spiffy.pm",
+    "Subspiffy.pm" and "Subsub.pm" to HTML and put the result there:
 
         Spiffy-Module/docs/html/Spiffy.html
         Spiffy-Module/docs/html/Spiffy/Subspiffy.html
@@ -112,7 +132,7 @@ EXAMPLE
 
         /u/mschilli/MYPROJECTS/Spiffy-Module
 
-    and your web server's doc root is `/opt/netscape/htdocs', you need to
+    and your web server's doc root is "/opt/netscape/htdocs", you need to
     create a symlink like
 
         ln -s /u/mschilli/MYPROJECTS/Spiffy-Module /opt/netscape/htdocs/Spiffy
@@ -121,10 +141,12 @@ EXAMPLE
 
         http://localhost/Spiffy/docs/html/Spiffy.html
 
-    you'll see the documentation.
+    you'll see the documentation. If you've specified a (probably empty)
+    "SEE ALSO" section, it will be automatically populated with other
+    modules in your distribution and a link to the current module's source
+    code.
 
-  Call it in Makefile.PL
-
+  Or, call it in Makefile.PL
     If you want to give the user of your distribution the opportunity to
     create their own browsable HTML-documentation of your module, just
     include the following in the Makefil.PL of your distribution:
