@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+###########################################
+# Mike Schilli, 2002 (m@perlmeister.com)
+###########################################
+use warnings;
+use strict;
+
+use Pod::HtmlTree qw(pod2htmltree);
+die "usage: $0 http_root" unless @ARGV;
+pod2htmltree(@ARGV);
