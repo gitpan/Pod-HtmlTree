@@ -15,7 +15,7 @@ use Pod::Html;
 use Cwd;
 use File::Temp qw(tempfile);
 
-our $VERSION     = '0.96';
+our $VERSION     = '0.97';
 
 our @ISA = qw(Exporter);
 
@@ -56,7 +56,7 @@ sub pms {
             }
         }
                     
-        return if ! -f or ! /\.pm$/;
+        return if ! -f or ! (/\.pm$/ || /\.pod$/);
 
         (my $path = $File::Find::name) =~ s#^./##;
 
@@ -111,8 +111,13 @@ sub paths_to_modules {
                         s#^/##;
                         s#/#::#g; 
                         s#\.pm##; 
+                        s#\.pod##;
                         $_; 
                       } @paths;
+
+    # Remove double entries (e.g. If a module consists of a .pm 
+    # and a .pod file)
+    @modules = do { my %myhash; @myhash{@modules} = (); keys %myhash};
 
     return @modules;
 }
@@ -144,6 +149,7 @@ sub pod2htmltree {
         (my $relpath = $pm) =~ s#$SEARCH_DIRS_PATTERN##o;
         my $htmlfile = File::Spec->catfile($htmldocdir, $relpath); 
         $htmlfile =~ s/\.pm$/\.html/;
+        $htmlfile =~ s/\.pod$/\.html/;
 
         my $dir     = dirname($htmlfile);
 
@@ -175,7 +181,13 @@ sub pod2htmltree {
         $data = join '', <FILE>;
         close FILE;
         open FILE, ">$htmlfile" or die "Cannot open $htmlfile";
-        $data =~ s#_SRC_HERE_#<A HREF=$htmlroot_to_module/$pm>$module</A>#g;
+            # If it's a separate pod, link to the .pm
+        $pm =~ s/\.pod$/.pm/;
+        if(-f $pm) {
+          $data =~ s#_SRC_HERE_#<A HREF=$htmlroot_to_module/$pm>$module</A>#g;
+        } else {
+          $data =~ s#_SRC_HERE_##g;
+        }
         print FILE $data;
         close FILE;
     }
